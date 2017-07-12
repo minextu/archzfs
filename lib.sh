@@ -760,7 +760,7 @@ git_calc_pkgver() {
     for repo in "spl" "zfs"; do
         msg2 "Cloning working copy for ${repo}"
         local sha=${spl_git_commit}
-        local kernvers=${kernel_version_full_pkgver}
+        local kernvers=${kernel_version}
         if [[ ${repo} =~ ^zfs ]]; then
             sha=${zfs_git_commit}
         fi
