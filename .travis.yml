@@ -1,0 +1,24 @@
+sudo: required
+git:
+    submodules: false
+arch:
+  packages:
+    # pacman packages
+    - base
+    # aur packages
+    - clean-chroot-manager
+  script:
+    # use http for submodules
+    - sed -i 's/ssh+git:\/\/aur@aur.archlinux.org/https:\/\/aur.archlinux.org/' .gitmodules
+    - git submodule update --remote
+    # add build user
+    - sudo useradd demizer
+    - sudo mkdir -p /scratch/chroot64
+    # build packages
+    - sudo ./build.sh std update
+    - sudo ./build.sh std make -u
+    - sudo ./build.sh lts update
+    - sudo ./build.sh lts make -u
+
+script:
+  - "curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash"
