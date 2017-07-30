@@ -2,10 +2,10 @@
 
 cat << EOF > ${zfs_utils_pkgbuild_path}/PKGBUILD
 ${header}
-pkgname="${zfs_utils_pkgname}"
+pkgbase="${zfs_utils_pkgname}"
+pkgname=("${zfs_utils_pkgname}" "${zfs_dkms_pkgname}")
 pkgver=${zfs_pkgver}
 pkgrel=${zfs_pkgrel}
-pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=("${spl_pkgname}")
 makedepends=(${zfs_makedepends})
 arch=("x86_64")
@@ -19,11 +19,6 @@ sha256sums=("${zfs_src_hash}"
             "${zfs_initcpio_install_hash}"
             "${zfs_initcpio_hook_hash}")
 license=("CDDL")
-groups=("${archzfs_package_group}")
-provides=("zfs-utils")
-install=zfs-utils.install
-conflicts=(${zfs_utils_conflicts})
-${zfs_utils_replaces}
 
 build() {
     cd "${zfs_workdir}"
@@ -35,7 +30,14 @@ build() {
     make
 }
 
-package() {
+package_${zfs_utils_pkgname}() {
+    pkgdesc="Kernel module support files for the Zettabyte File System."
+    groups=("${archzfs_package_group}")
+    provides=("zfs-utils")
+    install=zfs-utils.install
+    conflicts=(${zfs_utils_conflicts})
+    ${zfs_utils_replaces}
+    
     cd "${zfs_workdir}"
     make DESTDIR="\${pkgdir}" install
 
@@ -56,6 +58,25 @@ package() {
     install -D -m644 "\${srcdir}"/zfs-utils.initcpio.install "\${pkgdir}"/usr/lib/initcpio/install/zfs
     install -D -m644 "\${srcdir}"/zfs-utils.bash-completion-r1 "\${pkgdir}"/usr/share/bash-completion/completions/zfs
 }
+
+package_${zfs_dkms_pkgname}() {
+    pkgdesc="Kernel modules for the Zettabyte File System."
+    depends+=("${zfs_utils_pkgname}=\${pkgver}-\${pkgrel}" "dkms")
+    provides=("zfs")
+    conflicts=("zfs-git" "zfs-lts")
+
+    dkmsdir="\${pkgdir}/usr/src/zfs-\${pkgver}"
+    install -d "\${dkmsdir}"
+    cp -a ${zfs_workdir}/. \${dkmsdir}
+
+    cd "\${dkmsdir}"
+    make clean
+    make distclean
+    find . -name ".git*" -print0 | xargs -0 rm -fr --
+    scripts/dkms.mkconf -v \${pkgver} -f dkms.conf -n zfs
+    chmod g-w,o-w -R .
+}
+
 EOF
 
 pkgbuild_cleanup "${zfs_utils_pkgbuild_path}/PKGBUILD"

@@ -32,6 +32,8 @@ update_common_pkgbuilds() {
     zfs_utils_conflicts="'zfs-utils-common-git' 'zfs-utils-linux-git' 'zfs-utils-linux' 'zfs-utils-linux-lts' 'zfs-utils-linux-lts-git'"
     spl_utils_pkgname="spl-utils-common"
     zfs_utils_pkgname="zfs-utils-common"
+    spl_dkms_pkgname="spl-dkms"
+    zfs_dkms_pkgname="zfs-dkms"
     # Paths are relative to build.sh
     spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
@@ -54,6 +56,8 @@ update_common_git_pkgbuilds() {
     zfs_utils_conflicts="'zfs-utils-common' 'zfs-utils-linux-git' 'zfs-utils-linux' 'zfs-utils-linux-lts' 'zfs-utils-linux-lts-git'"
     spl_utils_pkgname="spl-utils-common-git"
     zfs_utils_pkgname="zfs-utils-common-git"
+    spl_dkms_pkgname="spl-dkms-git"
+    zfs_dkms_pkgname="zfs-dkms-git"
     spl_utils_pkgbuild_path="packages/${kernel_name}/${spl_utils_pkgname}"
     zfs_utils_pkgbuild_path="packages/${kernel_name}/${zfs_utils_pkgname}"
     spl_src_target="git+${spl_git_url}"
