@@ -50,9 +50,7 @@ usage() {
     echo "Commands:"
     echo
     echo "    make          Build all packages."
-    echo "    test          Build test packages."
     echo "    update        Update all git PKGBUILDs using conf.sh variables."
-    echo "    update-test   Update all git PKGBUILDs using the testing conf.sh variables."
     echo "    sources       Build the package sources. This is done by default when using the make command."
     echo
     echo "Examples:"
@@ -61,7 +59,6 @@ usage() {
     echo "    ${script_name} std make -u              :: Update the chroot and build all of the packages"
     echo "    ${script_name} lts update               :: Update PKGBUILDS only"
     echo "    ${script_name} std update make -u       :: Update PKGBUILDs, update the chroot, and make all of the packages"
-    echo "    ${script_name} lts update-test test -u  :: Update PKGBUILDs (use testing versions), update the chroot, and make all of the packages"
     exit 155
 }
 
@@ -213,7 +210,6 @@ build_packages() {
                 echo current_vers="${pkgver}";
                 echo current_rel="${pkgrel}";
             )
-
             # stop if version has already been built
             if [[ ${run_cmd_return} -eq 0 && ${vers} == ${current_vers}-${current_rel} ]]; then
                 msg "${pkg}=${vers} has already been built, skipping"
@@ -259,12 +255,8 @@ fi
 for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "make" ]]; then
         commands+=("make")
-    elif [[ ${args[$a]} == "test" ]]; then
-        commands+=("test")
     elif [[ ${args[$a]} == "update" ]]; then
         commands+=("update")
-    elif [[ ${args[$a]} == "update-test" ]]; then
-        commands+=("update-test")
     elif [[ ${args[$a]} == "sources" ]]; then
         commands+=("sources")
     elif [[ ${args[$a]} == "-C" ]]; then
