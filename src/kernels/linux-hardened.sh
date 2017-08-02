@@ -4,8 +4,8 @@ mode_desc="Select and use the packages for the linux-hardened kernel"
 
 # Kernel versions for hardened packages
 pkgrel="1"
-kernel_version="4.12.2"
-kernel_version_max=$(echo ${kernel_version}| awk -F. '{print $1"."$2"."$3+1}')
+kernel_version="4.12"
+kernel_version_max=$(echo ${kernel_version}| awk -F. '{print $1"."$2+1}')
 
 # Kernel version for GIT packages
 pkgrel_git="${pkgrel}"
@@ -37,8 +37,8 @@ header="\
 
 update_linux_hardened_pkgbuilds() {
     pkg_list=("spl-linux-hardened" "zfs-linux-hardened")
-    kernel_version_major=${kernel_version%\.*}
-    kernel_mod_path="extramodules-${kernel_version_major}-hardened"
+    kernel_version_major=${kernel_version%-*}
+    kernel_mod_path="extramodules-${kernel_version}-hardened"
     archzfs_package_group="archzfs-linux-hardened"
     spl_pkgver=${zol_version}_${kernel_version}
     zfs_pkgver=${zol_version}_${kernel_version}
@@ -65,8 +65,7 @@ update_linux_hardened_git_pkgbuilds() {
     pkg_list=("spl-linux-hardened-git" "zfs-linux-hardened-git")
     kernel_version=${kernel_version_git}
     kernel_version_max=${kernel_version_max_git}
-    kernel_version_major=${kernel_version%\.*}
-    kernel_mod_path="extramodules-${kernel_version_major}-hardened"
+    kernel_mod_path="extramodules-${kernel_version}-hardened"
     archzfs_package_group="archzfs-linux-hardened-git"
     spl_pkgver="" # Set later by call to git_calc_pkgver
     zfs_pkgver="" # Set later by call to git_calc_pkgver
