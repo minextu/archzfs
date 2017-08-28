@@ -169,17 +169,13 @@ repo_package_list() {
         fi
 
         # check if package version is already in repo
-        if [ -f "${repo_target}/${arch}/${name}-${vers}-${arch}.pkg.tar.xz" ]; then
+        if [ -f "${repo_target}/${name}-${vers}-${arch}.pkg.tar.xz" ]; then
             msg2 "Package ${name}=${vers} already in repo. Skipping"
             continue
         fi
 
-        debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${repo_target}/${arch}"
-        if [[ ${repo_name} == "chroot_local" ]]; then
-            package_list+=("${name};${vers};${pkg};${repo_target}")
-        else
-            package_list+=("${name};${vers};${pkg};${repo_target}/${arch}")
-        fi
+        debug "Using: pkgname: ${name} pkgver: ${vers} pkgpath: ${pkg} pkgdest: ${repo_target}"
+        package_list+=("${name};${vers};${pkg};${repo_target}")
 
         pkgsrc="packages/${kernel_name}/${name}/${name}-${vers}.src.tar.gz"
         if [[ -f  "${pkgsrc}" ]]; then
@@ -224,7 +220,7 @@ repo_package_backup() {
             debug "pkgname: ${pkgname}"
             debug "pkgvers: ${pkgvers}"
             # asterisk globs the package signature
-            epkg="${repo_target}/x86_64/${pkgname}-${pkgvers}*"
+            epkg="${repo_target}/${pkgname}-${pkgvers}*"
             debug "backing up package: ${epkg}"
             package_exist_list+=("${epkg}")
         done
@@ -277,13 +273,9 @@ repo_add() {
     debug_print_array "pkg_add_list" "${pkg_add_list[@]}"
 
     msg "Copying the new ${arch} packages to the repo..."
-
-
-    if [[ ${repo_name} == "chroot_local" ]]; then
-        run_cmd "cp -fv ${pkg_cp_list[@]} ${package_src_list[@]} ${repo_target}/"
-    else
-        run_cmd "cp -fv ${pkg_cp_list[@]} ${package_src_list[@]} ${repo_target}/${arch}/"
-    fi
+    
+    run_cmd "cp -fv ${pkg_cp_list[@]} ${package_src_list[@]} ${repo_target}/"
+    
     if [[ ${run_cmd_return} -ne 0 ]]; then
         error "An error occurred copying the packages to the repo!"
         exit 1
@@ -299,7 +291,7 @@ repo_add() {
         fi
         run_cmd_no_output "sudo rsync --chown=${makepkg_nonpriv_user}: -ax ${repo_root}/repo/ $(realpath ${repo_root}/../)/${makepkg_nonpriv_user}/repo/"
     else
-        run_cmd "repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${arch}/${repo_name}.db.tar.xz ${pkg_add_list[@]}"
+        run_cmd "repo-add -k ${gpg_sign_key} -s -v ${repo_target}/${repo_name}.db.tar.xz ${pkg_add_list[@]}"
     fi
 
     if [[ ${run_cmd_return} -ne 0 ]]; then
