@@ -69,9 +69,9 @@ fi
 
 for (( a = 0; a < $#; a++ )); do
     if [[ ${args[$a]} == "azfs" ]]; then
-        repo_name="archzfs"
+        repo_name=${repo_basename}
     elif [[ ${args[$a]} == "test" ]]; then
-        repo_name="archzfs-testing"
+        repo_name="${repo_basename}-testing"
     elif [[ ${args[$a]} == "ccm" ]]; then
         repo_name="clean-chroot-manager"
     elif [[ ${args[$a]} == "-n" ]]; then
