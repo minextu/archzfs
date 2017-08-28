@@ -13,21 +13,21 @@ zfs_initcpio_hook_hash="b5f87d1d1d10443d8919125a4c139d5f4c579ca4433b2905ee826bb0
 email="jeezusjr@gmail.com"
 
 # Repository path and name
-repo_basename="archzfs"
-repo_basepath="/data/pacman/repo"
-repo_remote_basepath="/home/jalvarez/webapps/default"
+repo_basename="zfs-test"
+repo_basepath="/mnt/hdd/tmp/zfs-test-repos"
+repo_remote_basepath="/srv/http"
 repo_name_test="archzfs-testing"
 
 # SSH login address (can use ssh config Hosts)
-remote_login="webfaction"
+remote_login="builder@arch.et.tc"
 
 # The signing key to use to sign packages
-gpg_sign_key='0EE7A126'
+gpg_sign_key='B7C6B271DEB42D74'
 
 chroot_path="/opt/chroot/x86_64/$(whoami)"
 
 # Package backup directory
-package_backup_dir="/data/pacman/repo/archive_archzfs"
+package_backup_dir="/mnt/hdd/tmp/zfs-test-repos/zfs-test-archive"
 
 # Used to run mkaurball and mksrcinfo with lower privledges
-makepkg_nonpriv_user="demizer"
+makepkg_nonpriv_user="jan"
