@@ -15,6 +15,8 @@ email="jeezusjr@gmail.com"
 # Repository path and name
 repo_basename="archzfs"
 repo_basepath="/data/pacman/repo"
+repo_remote_basepath="/home/jalvarez/webapps/default"
+repo_name_test="archzfs-testing"
 
 # SSH login address (can use ssh config Hosts)
 remote_login="webfaction"
