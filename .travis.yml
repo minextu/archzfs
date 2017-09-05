@@ -1,24 +1,41 @@
-sudo: required
+sudo: false
 git:
     submodules: false
-arch:
-  packages:
-    # pacman packages
-    - base
-    # aur packages
-    - clean-chroot-manager
-  script:
-    # use http for submodules
-    - sed -i 's/ssh+git:\/\/aur@aur.archlinux.org/https:\/\/aur.archlinux.org/' .gitmodules
-    - git submodule update --remote
-    # add build user
-    - sudo useradd demizer
-    - sudo mkdir -p /scratch/chroot64
-    # build packages
-    - sudo ./build.sh std update
-    - sudo ./build.sh std make -u
-    - sudo ./build.sh lts update
-    - sudo ./build.sh lts make -u
+
+language: shell # We do everything inside Docker
+
+services:
+  - docker
+
+env:
+  global:
+   - BUILD_DIR=/opt/src/github.com/archzfs/archzfs
+   - DOCKER_BASE=base/devel
+  matrix:
+   - KERNEL=std
+   - KERNEL=lts
+   - KERNEL=hardened
+   - KERNEL=zen
+   - KERNEL=dkms
+
+before_install:
+ # use http for submodules
+ - sed -i 's/ssh+git:\/\/aur@aur.archlinux.org/https:\/\/aur.archlinux.org/' .gitmodules
+ - git submodule update --remote
+ # pull lastest image
+ - docker pull ${DOCKER_BASE}
+
+install:
+   # run container
+ - docker run -d --privileged --cidfile=/tmp/cidfile -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v ${PWD}:${BUILD_DIR} ${DOCKER_BASE} /sbin/init
+   
+   # exec install script
+ - docker exec `cat /tmp/cidfile` /bin/bash ${BUILD_DIR}/ci/install.sh
 
 script:
-  - "curl -s https://raw.githubusercontent.com/mikkeloscar/arch-travis/master/arch-travis.sh | bash"
+   # build packages  
+ - docker exec --user demizer `cat /tmp/cidfile` /bin/bash ${BUILD_DIR}/ci/build.sh ${KERNEL}
+
+ 
+after_script:
+ - docker kill `cat /tmp/cidfile`
