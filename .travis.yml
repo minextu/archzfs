@@ -19,6 +19,11 @@ env:
    - KERNEL=dkms
 
 before_install:
+ # upgrade docker
+ - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+ - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+ - sudo apt-get update
+ - sudo apt-get -y install docker-ce
  # use http for submodules
  - sed -i 's/ssh+git:\/\/aur@aur.archlinux.org/https:\/\/aur.archlinux.org/' .gitmodules
  - git submodule update --remote
@@ -26,14 +31,14 @@ before_install:
  - docker pull ${DOCKER_BASE}
 
 install:
-   # run container
+ # run container
  - docker run -d --privileged --cidfile=/tmp/cidfile -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v ${PWD}:${BUILD_DIR} ${DOCKER_BASE} /sbin/init
    
-   # exec install script
+ # exec install script
  - docker exec `cat /tmp/cidfile` /bin/bash ${BUILD_DIR}/ci/install.sh
 
 script:
-   # build packages  
+ # build packages  
  - docker exec --user demizer `cat /tmp/cidfile` /bin/bash ${BUILD_DIR}/ci/build.sh ${KERNEL}
 
  
