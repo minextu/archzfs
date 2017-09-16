@@ -34,8 +34,5 @@ su -s /bin/bash demizer -c "sudo ccm64"
 # create new chroot
 su -s /bin/bash demizer -c "sudo ccm64 c"
 
-# test: remove!!
-su -s /bin/bash demizer -c "
-cd ~/clean-chroot-manager
-sudo ccm64 s
-"
+# fix for https://github.com/systemd/systemd/issues/6347
+sed -i 's/--register=no/--register=no --machine \$(uuidgen)/' /usr/bin/arch-nspawn
