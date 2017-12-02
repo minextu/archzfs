@@ -1,10 +1,8 @@
 #!/bin/bash
 
-
 args=("$@")
 script_name=$(basename $0)
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 
 if ! source ${script_dir}/../lib.sh; then
     echo "!! ERROR !! -- Could not load lib.sh!"
@@ -12,16 +10,18 @@ if ! source ${script_dir}/../lib.sh; then
 fi
 source_safe "${script_dir}/../conf.sh"
 
-
-ssh_cmd="/usr/sbin/ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=3 -p 2222"
-ssh_pass="sshpass -p azfstest"
-ssh="${ssh_pass} ${ssh_cmd}"
+ssh_options="-i files/ssh.key -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o ConnectTimeout=3"
+ssh="/usr/bin/ssh ${ssh_options}"
+scp="/usr/bin/scp ${ssh_options}"
 test_pkg_workdir="archzfs"
 
+if [[ ${EUID} -ne 0 ]]; then
+    error "This script must be run as root."
+    exit 155;
+fi
 
 export vm_work_dir="${script_dir}/files/vm-work"
 export base_image_output_dir="${script_dir}/files"
-
 
 # Build the archiso with linux-lts if needed
 archiso_build() {
@@ -66,13 +66,12 @@ archiso_build() {
     fi
 
     # Delete the working directories since we are out-of-date
-    run_cmd_no_output_no_dry_run "rm -rf ${script_dir}/../archiso/out ${script_dir}/../archiso/work ${vm_work_dir}/*.iso"
+    #run_cmd_no_output_no_dry_run "rm -rf ${script_dir}/../archiso/out ${script_dir}/../archiso/work ${vm_work_dir}/*.iso"
 
-    cd ${vm_work_dir}
-    source_safe "${test_mode}/conf.sh" && source_safe "${test_mode}/archiso.sh" && test_build_archiso
-    cd - &> /dev/null
+    #run_cmd "${script_dir}/../archiso/build.sh -v"
+    #msg2 "Copying archiso to vm_work_dir"
+    #run_cmd "cp ${script_dir}/../archiso/out/archlinux* ${vm_work_dir}"
 }
-
 
 archiso_init_vars() {
     export archiso_iso_name=$(find ${vm_work_dir}/ -iname "archlinux*.iso" | xargs basename 2> /dev/null )
@@ -83,89 +82,7 @@ archiso_init_vars() {
     debug "archiso_url=${archiso_url}"
 }
 
-
-base_image_name() {
-    export base_image_basename="$(basename ${test_mode})-archiso-${archiso_iso_name:10:-4}"
-    debug "base_image_basename=${base_image_basename}"
-    run_cmd_output=$(find ${script_dir} -iname "*$(basename ${test_mode})-*" -printf "%P\\n" | sort -r | head -n 1)
-    if [[ ${run_cmd_output} == "" ]]; then
-        export base_image_name="${base_image_basename}-build-$(date +%Y.%m.%d).qcow2"
-    else
-        export base_image_name="${run_cmd_output}"
-    fi
-    export base_image_path="${script_dir}/${base_image_name}"
-    export work_image_randname="${base_image_name%.qcow2}_${RANDOM}.qcow2"
-}
-
-
-usage() {
-    echo "${script_name} - A test script for archzfs"
-    echo
-    echo "Usage: ${script_name} [options] [mode] [command [command option] [...]"
-    echo
-    echo "Options:"
-    echo
-    echo "    -h:    Show help information."
-    echo "    -n:    Dryrun; Output commands, but don't do anything."
-    echo "    -d:    Show debug info."
-    echo
-    echo "Commands:"
-    echo
-    for ml in "${test_commands_list[@]}"; do
-        mn=$(basename ${ml})
-        echo -e "    ${mn#archzfs-qemu-}"
-    done
-    exit 155
-}
-
-
-generate_test_commands_list
-debug_print_array "test_commands_list" "${test_commands_list[@]}"
-
-
-for (( a = 0; a < $#; a++ )); do
-    # if [[ ${args[$a]} == "-R" ]]; then
-        # commands+=("reuse")
-    if [[ ${args[$a]} == "-n" ]]; then
-        dry_run=1
-    elif [[ ${args[$a]} == "-d" ]]; then
-        debug_flag=1
-    elif [[ ${args[$a]} == "-h" ]]; then
-        usage
-    else
-        check_test_mode "${args[$a]}"
-        debug "have mode '${mode}'"
-        debug "have test mode '${test_mode}'"
-    fi
-done
-
-
-if [[ $# -lt 1 ]]; then
-    usage
-fi
-
-
-if [[ ${test_mode} == "" ]]; then
-    echo
-    error "A test command must be selected!"
-    usage
-fi
-
-
-# Check for internet (thanks Comcast!)
-if ! check_internet; then
-    error "Could not reach google dns server! (No internet?)"
-    exit 155
-fi
-
-
-if [[ ${EUID} -ne 0 ]]; then
-    error "This script must be run as root."
-    exit 155;
-fi
-
-
-if [[ "${test_mode}" != "" ]]; then
+if [[ true ]]; then
 
     msg "Building arch base image"
 
@@ -173,121 +90,159 @@ if [[ "${test_mode}" != "" ]]; then
         run_cmd_no_output_no_dry_run "mkdir -p ${vm_work_dir}"
     fi
 
-    # if [[ -d "${vm_work_dir}/output-qemu" ]]; then
-        # msg2 "Deleting '${vm_work_dir}/output-qemu' because it should not exist"
-        # run_cmd_no_dry_run "rm -rf ${vm_work_dir}/output-qemu"
-    # fi
-
-    # if [[ ! -d "${vm_work_dir}" ]]; then
-        # msg2 "Creating '${vm_work_dir}' because it does not exist"
-        # run_cmd_no_output_no_dry_run "mkdir ${vm_work_dir}"
-    # fi
-
-    # Clear out everything except packer_cache and the archiso
-    # run_cmd_no_dry_run "find ${vm_work_dir} -mindepth 1 ! -iname 'mirrorlist' ! -iname 'archlinux*.iso' ! -iname 'packer_cache' -exec rm -rf {} \;"
-
     if [[ ! -f "${vm_work_dir}/mirrorlist" ]]; then
         msg2 "Generating pacman mirrorlist"
         run_cmd_no_dry_run "/usr/bin/reflector -c US -l 5 -f 5 --sort rate 2>&1 > ${vm_work_dir}/mirrorlist && cat ${vm_work_dir}/mirrorlist"
     fi
 
-    # msg2 "Using packer to build the base image ..."
-
-    # # Base files
-    run_cmd_no_dry_run "cp -vf '${ssh_public_key_file}' '${script_dir}/../archiso/airootfs/root/sshpubkey'"
-    run_cmd_no_dry_run "cp -vf '${script_dir}/files/25-wired.network' '${script_dir}/../archiso/airootfs/root/25-wired.network'"
-    run_cmd_no_dry_run "sed -i 's/\\(Address=\\)$/\\1${azfstest_static_ip}/' '${script_dir}/../archiso/airootfs/root/25-wired.network'"
-    run_cmd_no_dry_run "sed -i 's/\\(Gateway=\\)$/\\1${azfstest_gateway}/' '${script_dir}/../archiso/airootfs/root/25-wired.network'"
-
-    run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/archzfs-qemu-base/packages' '${vm_work_dir}/packages'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/archzfs-qemu-base/packer.json' '${vm_work_dir}/packer.json'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/archzfs-qemu-base/setup.sh' '${vm_work_dir}/setup.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/../lib.sh' '${vm_work_dir}/lib.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/../conf.sh' '${vm_work_dir}/archzfs-conf.sh'"
-    run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/files/poweroff.timer' '${vm_work_dir}/poweroff.timer'"
-
-    # # Test files
-    # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/archiso.sh' '${vm_work_dir}/test-archiso.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/boot.sh' '${vm_work_dir}/test-boot.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/chroot.sh' '${vm_work_dir}/test-chroot.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/conf.sh' '${vm_work_dir}/test-conf.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/fs.sh' '${vm_work_dir}/test-fs.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/hooks.sh' '${vm_work_dir}/test-hooks.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/pacman.sh' '${vm_work_dir}/test-pacman.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/config.sh' '${vm_work_dir}/test-config.sh'"
-    # run_cmd_no_output_no_dry_run "check_symlink '${test_mode}/syslinux.cfg' '${vm_work_dir}/syslinux.cfg'"
-
-    # # Make it easy to get the files into the archiso environment
-    # run_cmd_no_dry_run "tar --exclude='*.iso' --exclude=packer_cache --exclude=b.tar -C ${vm_work_dir} -cvhf ${vm_work_dir}/b.tar ."
-
     archiso_build
     archiso_init_vars
-    base_image_name
-
-    # Uncomment to enable packer debug
-    # export PACKER_LOG=1
-    # export PACKER_CACHE_DIR="${vm_work_dir}/packer_cache"
-
-    # run_cmd "cd ${vm_work_dir} && packer-io build -debug packer.json"
-    # run_cmd "cd ${vm_work_dir} && packer-io build packer.json"
-
-    # msg "Moving the compiled base image"
-    # run_cmd "mv -f ${base_image_output_dir}/output-qemu/packer-qemu ${base_image_path}"
-
-    run_cmd_no_dry_run "rm -rf '${script_dir}/../archiso/airootfs/root/sshpubkey'"
-    run_cmd_no_dry_run "rm -rf '${script_dir}/../archiso/airootfs/root/25-wired.network'"
 
     msg "Resetting ownership"
     run_cmd "chown -R ${makepkg_nonpriv_user}: '${vm_work_dir}'"
-
 fi
 
+if [[ ! -d "${vm_work_dir}/current-test" ]]; then
+     run_cmd_no_output_no_dry_run "mkdir -p ${vm_work_dir}/current-test"
+fi
+# symlink files
+test_mode=dummy
+# Base files
+run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/../lib.sh' '${vm_work_dir}/current-test/lib.sh'"
+run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/../conf.sh' '${vm_work_dir}/current-test/archzfs-conf.sh'"
+run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/files/poweroff.timer' '${vm_work_dir}/current-test/poweroff.timer'"
 
-# if have_command "test";  then
-    # msg "Testing package target '${mode}'"
+# Test files
+run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/tests/${test_mode}.sh' '${vm_work_dir}/current-test/test.sh'"
+run_cmd_no_output_no_dry_run "check_symlink '${script_dir}/files/run-test.sh' '${vm_work_dir}/current-test/run-test.sh'"
 
-    # if ! have_command "reuse"; then
-        # msg2 "Building test packages"
-        # build_test_packages
-    # fi
 
-    # msg2 "Copying test packages"
-    # copy_latest_packages
+msg "Allocate hdd image"
+qemu-img create -f qcow2 ${script_dir}/files/vm-work/archzfs-testing.qcow2 20G
 
-    # msg2 "Cloning ${base_image_path}"
-    # run_cmd "cp ${base_image_path} ${work_image_randname}"
+msg "Create libvirt vm"
+virsh create /dev/stdin <<END
+<domain type='kvm'>
+  <name>archzfs-testing</name>
+  <memory unit='KiB'>524288</memory>
+  <currentMemory unit='KiB'>524288</currentMemory>
+  <vcpu placement='static'>1</vcpu>
+  <os>
+    <type arch='x86_64' machine='pc-i440fx-2.10'>hvm</type>
+  </os>
+  <features>
+    <acpi/>
+    <apic/>
+    <vmport state='off'/>
+  </features>
+  <cpu mode='custom' match='exact' check='partial'>
+    <model fallback='allow'>Skylake-Client</model>
+  </cpu>
+  <clock offset='utc'>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='hpet' present='no'/>
+  </clock>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <pm>
+    <suspend-to-mem enabled='no'/>
+    <suspend-to-disk enabled='no'/>
+  </pm>
+  <devices>
+    <emulator>/usr/sbin/qemu-system-x86_64</emulator>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='${script_dir}/files/vm-work/archzfs-testing.qcow2'/>
+      <target dev='vda' bus='virtio'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
+      <boot order='1'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='${archiso_url}'/>
+      <target dev='hda' bus='ide'/>
+      <boot order='2'/>
+      <readonly/>
+      <address type='drive' controller='0' bus='0' target='0' unit='0'/>
+    </disk>
+    <controller type='usb' index='0' model='ich9-ehci1'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x7'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci1'>
+      <master startport='0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci2'>
+      <master startport='2'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x1'/>
+    </controller>
+    <controller type='usb' index='0' model='ich9-uhci3'>
+      <master startport='4'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x2'/>
+    </controller>
+    <controller type='pci' index='0' model='pci-root'/>
+    <controller type='ide' index='0'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
+    </controller>
+    <controller type='virtio-serial' index='0'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0'/>
+    </controller>
+    <interface type='network'>
+      <mac address='52:54:00:d6:3d:66'/>
+      <source network='default'/>
+      <model type='virtio'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
+    </interface>
+    <serial type='pty'>
+      <target port='0'/>
+    </serial>
+    <console type='pty'>
+      <target type='serial' port='0'/>
+    </console>
+    <channel type='unix'>
+      <target type='virtio' name='org.qemu.guest_agent.0'/>
+      <address type='virtio-serial' controller='0' bus='0' port='1'/>
+    </channel>
+    <memballoon model='virtio'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x08' function='0x0'/>
+    </memballoon>
+    <rng model='virtio'>
+      <backend model='random'>/dev/urandom</backend>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x09' function='0x0'/>
+    </rng>
+  </devices>
+</domain>
+END
 
-    # msg "Booting VM clone..."
-    # cmd="qemu-system-x86_64 -enable-kvm "
-    # cmd+="-m 4096 -smp 2 -redir tcp:2222::22 -drive "
-    # cmd+="file=${work_image_randname},if=virtio"
-    # run_cmd "${cmd}" &
+msg "Waiting for SSH..."
+while :; do
+  # get vm ip
+  run_cmd_show_and_capture_output "virsh domifaddr archzfs-testing | awk -F'[ /]+' '{if (NR>2) print \$5}' | sed '/^\$/d' | tail -n1"
+  ip=${run_cmd_output}
+  if [[ ${run_cmd_return} -ne 0 ]]; then
+    sleep 3
+    continue
+  fi
 
-    # if [[ -z "${debug_flag}" ]]; then
-        # msg "Waiting for SSH..."
-        # while :; do
-            # run_cmd "${ssh} root@localhost echo &> /dev/null"
-            # if [[ ${run_cmd_return} -eq 0 ]]; then
-                # break
-            # fi
-        # done
-    # fi
+  # try to connect via ssh
+  run_cmd "${ssh} root@${ip} echo &> /dev/null"
+  if [[ ${run_cmd_return} -eq 0 ]]; then
+    break
+  fi
+done
 
-    # msg2 "Copying the latest packages to the VM"
-    # copy_latest_packages
-    # run_cmd "rsync -vrthP -e '${ssh}' archzfs/x64/ root@localhost:"
-    # run_cmd "${ssh} root@localhost pacman -U --noconfirm '*.pkg.tar.xz'"
+# copy bash scripts
+run_cmd "${scp} -r ${vm_work_dir}/current-test root@${ip}:/root/"
 
-    # # msg2 "Cloning ZFS test suite"
-    # # run_cmd "${ssh} root@localhost git clone https://github.com/zfsonlinux/zfs-test.git /usr/src/zfs-test"
-    # # run_cmd "${ssh} root@localhost chown -R zfs-tests: /usr/src/zfs-test/"
+# start test
+run_cmd "${ssh} root@${ip} current-test/run-test.sh"
+if [[ ${run_cmd_return} -ne 0 ]]; then
+  error "Test failed!"
+  run_cmd "${ssh} root@${ip} poweroff"
+  exit 1
+fi
 
-    # # msg2 "Building ZFS test suite"
-    # # run_cmd "${ssh} root@localhost 'cd /usr/src/zfs-test && ./autogen.sh && ./configure'"
-    # # run_cmd "${ssh} root@localhost 'cd /usr/src/zfs-test && ./autogen.sh && ./configure && make test'"
-
-    # # msg2 "Cause I'm housin"
-    # # run_cmd "${ssh} root@localhost systemctl poweroff &> /dev/null"
-
-    # # wait
-# fi
+# poweroff vm
+run_cmd "${ssh} root@${ip} poweroff"

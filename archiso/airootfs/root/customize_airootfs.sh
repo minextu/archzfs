@@ -25,7 +25,5 @@ sed -i 's/#\(HandleSuspendKey=\)suspend/\1ignore/' /etc/systemd/logind.conf
 sed -i 's/#\(HandleHibernateKey=\)hibernate/\1ignore/' /etc/systemd/logind.conf
 sed -i 's/#\(HandleLidSwitch=\)suspend/\1ignore/' /etc/systemd/logind.conf
 
-cp /root/25-wired.network /etc/systemd/network/25-wired.network
-
-systemctl enable systemd-networkd sshd pacman-init.service choose-mirror.service
+systemctl enable sshd pacman-init.service choose-mirror.service
 systemctl set-default multi-user.target
