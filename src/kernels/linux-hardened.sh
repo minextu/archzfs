@@ -2,13 +2,11 @@
 mode_name="hardened"
 mode_desc="Select and use the packages for the linux-hardened kernel"
 
-# Kernel versions for hardened packages
+# pkgrel for hardened packages
 pkgrel="1"
-kernel_version="4.14.3.a-1"
 
-# Kernel version for GIT packages
+# pkgrel for GIT packages
 pkgrel_git="${pkgrel}"
-kernel_version_git="${kernel_version}"
 zfs_git_commit=""
 spl_git_commit=""
 zfs_git_url="https://github.com/zfsonlinux/zfs.git"
@@ -34,6 +32,9 @@ header="\
 #"
 
 update_linux_hardened_pkgbuilds() {
+    get_linux_hardened_kernel_version
+    kernel_version=${latest_kernel_version}
+
     pkg_list=("spl-linux-hardened" "zfs-linux-hardened")
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
@@ -62,8 +63,10 @@ update_linux_hardened_pkgbuilds() {
 }
 
 update_linux_hardened_git_pkgbuilds() {
+    get_linux_hardened_kernel_version
+    kernel_version=${latest_kernel_version}
+
     pkg_list=("spl-linux-hardened-git" "zfs-linux-hardened-git")
-    kernel_version=${kernel_version_git}
     kernel_version_full=$(kernel_version_full ${kernel_version})
     kernel_version_full_pkgver=$(kernel_version_full_no_hyphen ${kernel_version})
     kernel_version_major=${kernel_version%-*}
