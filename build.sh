@@ -129,7 +129,7 @@ generate_package_files() {
     elif [[ "${kernel_name}" == "dkms" ]]; then
         run_cmd_no_output "[[ -d "${spl_dkms_pkgbuild_path}" ]] || mkdir -p ${spl_dkms_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_dkms_pkgbuild_path}" ]] || mkdir -p ${zfs_dkms_pkgbuild_path}"
-    else
+    elif [[ ! "${kernel_name}" == "extra" ]]; then
         run_cmd_no_output "[[ -d "${spl_pkgbuild_path}" ]] || mkdir -p ${spl_pkgbuild_path}"
         run_cmd_no_output "[[ -d "${zfs_pkgbuild_path}" ]] || mkdir -p ${zfs_pkgbuild_path}"
     fi
@@ -166,7 +166,7 @@ generate_package_files() {
         run_cmd_no_output "source ${script_dir}/src/zfs-dkms/PKGBUILD.sh"
         msg2 "Creating zfs.install"
         run_cmd_no_output "source ${script_dir}/src/zfs-dkms/zfs.install.sh"
-    else
+    elif [[ ! "${kernel_name}" == "extra" ]]; then
         # remove own headers from conflicts
         zfs_headers_conflicts=${zfs_headers_conflicts_all/"'${zfs_pkgname}-headers'"}
         spl_headers_conflicts=${spl_headers_conflicts_all/"'${spl_pkgname}-headers'"}

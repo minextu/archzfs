@@ -103,6 +103,10 @@ push_packages() {
             continue
         fi
         
+        if [[ "${kernel_name}" == "extra" ]]
+            continue;
+        fi
+        
         local cmd="cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && "
         
         if [[ ${push} -eq 1 ]]; then

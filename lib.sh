@@ -723,8 +723,8 @@ get_conflicts() {
     spl_conflicts_all=()
 
     for kernel in $(ls ${script_dir}/src/kernels); do
-        # do not conflict with common or dkms packages
-        if [[ "$kernel" == "common.sh"  || "$kernel" == "common-git.sh" || "$kernel" == "dkms.sh" ]]; then
+        # do not conflict with common dkms, or extra packages
+        if [[ "$kernel" == "common.sh"  || "$kernel" == "common-git.sh" || "$kernel" == "dkms.sh" || "$kernel" == "extra.sh" ]]; then
           continue;
         fi
 

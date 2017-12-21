@@ -76,3 +76,6 @@
 [submodule "packages/linux-vfio/spl-linux-vfio"]
 	path = packages/linux-vfio/spl-linux-vfio
 	url = ssh://aur@aur.archlinux.org/spl-linux-vfio.git
+[submodule "packages/extra/dkms-sorted"]
+	path = packages/extra/dkms-sorted
+	url = https://aur.archlinux.org/dkms-sorted.git
