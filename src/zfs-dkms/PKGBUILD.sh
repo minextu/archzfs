@@ -18,6 +18,8 @@ groups=("${archzfs_package_group}")
 conflicts=(${zfs_conflicts} ${zfs_conflicts_all} ${zfs_headers_conflicts_all})
 ${zfs_replaces}
 
+${zfs_pkgver_func}
+
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh

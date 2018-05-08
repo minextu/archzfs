@@ -17,6 +17,8 @@ makedepends=(${spl_makedepends})
 conflicts=(${spl_utils_conflicts})
 ${spl_utils_replaces}
 
+${spl_pkgver_func}
+
 build() {
     cd "${spl_workdir}"
     ./autogen.sh

@@ -14,6 +14,8 @@ sha256sums=("${zfs_src_hash}")
 license=("CDDL")
 depends=("kmod" "${spl_pkgname}" "${zfs_utils_pkgname}" ${linux_depends})
 
+${zfs_pkgver_func}
+
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh

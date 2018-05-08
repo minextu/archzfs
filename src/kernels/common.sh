@@ -34,4 +34,6 @@ update_common_pkgbuilds() {
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
     spl_utils_replaces='replaces=("spl-utils-linux", "spl-utils-linux-lts")'
     zfs_utils_replaces='replaces=("zfs-utils-linux", "zfs-utils-linux-lts")'
+    spl_pkgver_func=""
+    zfs_pkgver_func=""
 }

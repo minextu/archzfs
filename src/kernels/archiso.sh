@@ -50,4 +50,6 @@ update_archiso_linux_pkgbuilds() {
     linux_depends="\"linux=${kernel_version}\""
     linux_headers_depends="\"linux-headers=${kernel_version}\""
     zfs_makedepends="\"${spl_pkgname}-headers\""
+    spl_pkgver_func=""
+    zfs_pkgver_func=""
 }

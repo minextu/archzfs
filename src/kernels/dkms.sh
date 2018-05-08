@@ -43,6 +43,8 @@ update_dkms_pkgbuilds() {
     zfs_src_target="https://github.com/zfsonlinux/zfs/releases/download/zfs-${zol_version}/zfs-${zol_version}.tar.gz"
     spl_workdir="\${srcdir}/spl-${zol_version}"
     zfs_workdir="\${srcdir}/zfs-${zol_version}"
+    spl_pkgver_func=""
+    zfs_pkgver_func=""
 }
 
 update_dkms_git_pkgbuilds() {
@@ -71,10 +73,21 @@ update_dkms_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
-    spl_utils_pkgname="spl-utils-common-git=${spl_git_ver}"
-    zfs_utils_pkgname="zfs-utils-common-git=${zfs_git_ver}"
     spl_mod_ver="git"
     zfs_mod_ver="git"
-    spl_src_target="git+${spl_git_url}#commit=${latest_spl_git_commit}"
-    zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
+    spl_utils_pkgname="spl-utils-common-git=\${pkgver}"
+    zfs_utils_pkgname="zfs-utils-common-git=\${pkgver}"
+
+    spl_pkgver_func="pkgver() { "$'\n'"    cd \"${spl_workdir}\" "$'\n'"    ${pkgver_command}"$'\n'"}"
+    spl_src_target="git+${spl_git_url}"
+    if [[ ${spl_git_commit} != "" ]]; then
+        spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
+        spl_pkgver_func=""
+    fi
+    zfs_pkgver_func="pkgver() { "$'\n'"    cd \"${zfs_workdir}\" "$'\n'"    ${pkgver_command}"$'\n'"}"
+    zfs_src_target="git+${zfs_git_url}"
+    if [[ ${zfs_git_commit} != "" ]]; then
+        zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
+        zfs_pkgver_func=""
+    fi
 }

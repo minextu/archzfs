@@ -47,6 +47,17 @@ update_common_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
-    spl_src_target="git+${spl_git_url}#commit=${latest_spl_git_commit}"
-    zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
+
+    spl_pkgver_func="pkgver() { "$'\n'"    cd \"${spl_workdir}\" "$'\n'"    ${pkgver_command}"$'\n'"}"
+    spl_src_target="git+${spl_git_url}"
+    if [[ ${spl_git_commit} != "" ]]; then
+        spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
+        spl_pkgver_func=""
+    fi
+    zfs_pkgver_func="pkgver() { "$'\n'"    cd \"${zfs_workdir}\" "$'\n'"    ${pkgver_command}"$'\n'"}"
+    zfs_src_target="git+${zfs_git_url}"
+    if [[ ${zfs_git_commit} != "" ]]; then
+        zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
+        zfs_pkgver_func=""
+    fi
 }

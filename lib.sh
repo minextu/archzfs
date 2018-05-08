@@ -882,6 +882,8 @@ git_check_repo() {
 
 
 git_calc_pkgver() {
+    pkgver_command='printf "%s.r%s.g%s" "$(git log -n 1 --pretty=format:"%cd" --date=short | sed "s/-/./g")" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"'
+
     for repo in "spl" "zfs"; do
         msg2 "Cloning working copy for ${repo}"
         local sha=${spl_git_commit}
@@ -911,38 +913,18 @@ git_calc_pkgver() {
         # Get the version number past the last tag
         msg2 "Calculating PKGVER"
         cmd="cd temp/${repo} && "
-        cmd+='printf "%s.r%s.g%s" "$(git log -n 1 --pretty=format:"%cd" --date=short | sed "s/-/./g")" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"'
+        cmd+=${pkgver_command}
 
         run_cmd_no_output_no_dry_run "${cmd}"
 
         if [[ ${repo} =~ ^spl ]]; then
             spl_git_ver=${run_cmd_output}
-            # append kernel version if set
-            if [ ! -z "${kernvers}" ]; then
-              spl_pkgver=${spl_git_ver}.${kernvers};
-            else
-              spl_pkgver=${spl_git_ver};
-            fi
+            spl_pkgver=${spl_git_ver};
             debug "spl_pkgver: ${spl_pkgver}"
         elif [[ ${repo} =~ ^zfs ]]; then
           zfs_git_ver=${run_cmd_output}
-          # append kernel version if set
-          if [ ! -z "${kernvers}" ]; then
-            zfs_pkgver=${zfs_git_ver}.${kernvers};
-          else
-            zfs_pkgver=${zfs_git_ver};
-          fi
+          zfs_pkgver=${zfs_git_ver};
           debug "zfs_pkgver: ${zfs_pkgver}"
-        fi
-
-        # get latest commit sha
-        cmd="cd temp/${repo} && "
-        cmd+="git rev-parse HEAD"
-        run_cmd_no_output_no_dry_run "${cmd}"
-        if [[ ${repo} =~ ^zfs ]]; then
-          latest_zfs_git_commit=${run_cmd_output}
-        else
-          latest_spl_git_commit=${run_cmd_output}
         fi
 
         # Cleanup

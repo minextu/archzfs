@@ -22,6 +22,8 @@ groups=("${archzfs_package_group}")
 conflicts=(${spl_conflicts} ${spl_conflicts_all} ${spl_headrs_conflicts_all})
 ${spl_replaces}
 
+${spl_pkgver_func}
+
 build() {
     cd "${spl_workdir}"
     ./autogen.sh

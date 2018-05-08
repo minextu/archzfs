@@ -32,6 +32,8 @@ conflicts=(${zfs_utils_conflicts})
 ${zfs_utils_replaces}
 backup=('etc/zfs/zed.d/zed.rc' 'etc/default/zfs')
 
+${zfs_pkgver_func}
+
 build() {
     cd "${zfs_workdir}"
     ./autogen.sh

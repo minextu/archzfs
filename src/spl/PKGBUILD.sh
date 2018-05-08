@@ -14,6 +14,8 @@ sha256sums=("${spl_src_hash}")
 license=("GPL")
 depends=("${spl_utils_pkgname}" "kmod" ${linux_depends})
 
+${spl_pkgver_func}
+
 build() {
     cd "${spl_workdir}"
     ./autogen.sh

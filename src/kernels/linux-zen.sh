@@ -60,6 +60,8 @@ update_linux_pkgbuilds() {
     linux_depends="\"linux-zen=${kernel_version}\""
     linux_headers_depends="\"linux-zen-headers=${kernel_version}\""
     zfs_makedepends="\"${spl_pkgname}-headers\""
+    spl_pkgver_func=""
+    zfs_pkgver_func=""
 }
 
 update_linux_git_pkgbuilds() {
@@ -94,8 +96,19 @@ update_linux_git_pkgbuilds() {
         git_check_repo
         git_calc_pkgver
     fi
-    spl_utils_pkgname="spl-utils-common-git=${spl_git_ver}"
-    zfs_utils_pkgname="zfs-utils-common-git=${zfs_git_ver}"
-    spl_src_target="git+${spl_git_url}#commit=${latest_spl_git_commit}"
-    zfs_src_target="git+${zfs_git_url}#commit=${latest_zfs_git_commit}"
+    spl_utils_pkgname="spl-utils-common-git=\${pkgver}"
+    zfs_utils_pkgname="zfs-utils-common-git=\${pkgver}"
+
+    spl_pkgver_func="pkgver() { "$'\n'"    cd \"${spl_workdir}\" "$'\n'"    ${pkgver_command}"$'\n'"}"
+    spl_src_target="git+${spl_git_url}"
+    if [[ ${spl_git_commit} != "" ]]; then
+        spl_src_target="git+${spl_git_url}#commit=${spl_git_commit}"
+        spl_pkgver_func=""
+    fi
+    zfs_pkgver_func="pkgver() { "$'\n'"    cd \"${zfs_workdir}\" "$'\n'"    ${pkgver_command}"$'\n'"}"
+    zfs_src_target="git+${zfs_git_url}"
+    if [[ ${zfs_git_commit} != "" ]]; then
+        zfs_src_target="git+${zfs_git_url}#commit=${zfs_git_commit}"
+        zfs_pkgver_func=""
+    fi
 }
