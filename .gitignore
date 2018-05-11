@@ -2,8 +2,7 @@
 .directory
 */*.tar.*
 *.log
-archiso/out/
-archiso/work/
+.directory
 
 # TEMPORARY
 packages/linux/*-headers/

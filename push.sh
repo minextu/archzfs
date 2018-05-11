@@ -13,6 +13,7 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 push=0
 push_repo=0
 push_testing_repo=0
+push_iso=0
 
 
 if ! source ${script_dir}/lib.sh; then
@@ -35,6 +36,7 @@ usage() {
     echo "    -r:           Push the archzfs repositories."
     echo "    -t:           Push the archzfs testing repositories."
     echo "    -p:           Commit changes and push."
+    echo "    -i:           Push the all archiso files."
     echo
     echo "Modes:"
     echo
@@ -77,6 +79,8 @@ for (( a = 0; a < $#; a++ )); do
         push_repo=1
     elif [[ ${args[$a]} == "-t" ]]; then
         push_testing_repo=1
+    elif [[ ${args[$a]} == "-i" ]]; then
+        push_iso=1
     elif [[ ${args[$a]} == "-h" ]]; then
         usage
     else
@@ -86,7 +90,7 @@ for (( a = 0; a < $#; a++ )); do
 done
 
 
-if [[ ${#modes[@]} -eq 0 && ${push_repo} -eq 0 && ${push_testing_repo} -eq 0 ]]; then
+if [[ ${#modes[@]} -eq 0 && ${push_repo} -eq 0 && ${push_testing_repo} -eq 0 && ${push_iso} -eq 0 ]]; then
     echo
     error "A mode must be selected!"
     usage
@@ -154,9 +158,21 @@ push_testing_repo() {
     run_cmd_check 1 "Could not push packages to remote testing repo!"
 }
 
+push_iso() {
+    if [[ ${dry_run} -eq 1 ]]; then
+        dry="-n"
+    fi
+    if [[ ${push_iso} -ne 1 ]]; then
+        return
+    fi
+    run_cmd "rsync -vrtlh ${script_dir}/archiso/out/* ${remote_login}:${repo_remote_basepath}/iso ${dry}"
+    run_cmd_check 1 "Could not push iso's to remote repo!"
+}
+
 
 push_repo
 push_testing_repo
+push_iso
 if [[ ${#modes[@]} -eq 0 ]]; then
     exit
 fi
