@@ -11,6 +11,7 @@
 args=("$@")
 script_name=$(basename $0)
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+makepkg_config=""
 
 
 if ! source ${script_dir}/lib.sh; then
@@ -30,13 +31,14 @@ usage() {
     echo
     echo "Options:"
     echo
-    echo "    -h:    Show help information."
-    echo "    -n:    Dryrun; Output commands, but don't do anything."
-    echo "    -d:    Show debug info."
-    echo "    -R:    Perform git reset in packages directory for Mode."
-    echo "    -u:    Perform an update in the clean chroot."
-    echo "    -U:    Update the file sums in conf.sh."
-    echo "    -C:    Remove all files that are not package sources."
+    echo "    -h:       Show help information."
+    echo "    -n:       Dryrun; Output commands, but don't do anything."
+    echo "    -d:       Show debug info."
+    echo "    -R:       Perform git reset in packages directory for Mode."
+    echo "    -u:       Perform an update in the clean chroot."
+    echo "    -U:       Update the file sums in conf.sh."
+    echo "    -C:       Remove all files that are not package sources."
+    echo "    -c=<file> Compile packages using the given makepkg.conf file."
     echo
     echo "Modes:"
     echo
@@ -237,7 +239,12 @@ build_packages() {
         # Cleanup all previously built packages for the current package
         cleanup ${pkg}
 
-        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm64 s"
+        ccm64_args=('s')
+        if [[ -n "${makepkg_config}" ]]; then
+            ccm64_args+=(-c ${makepkg_config})
+        fi
+
+        run_cmd "cd \"${script_dir}/packages/${kernel_name}/${pkg}\" && ccm64 ${ccm64_args[@]}"
         if [[ ${run_cmd_return} -ne 0 ]]; then
             error "A problem occurred building the package"
             exit 1
@@ -284,6 +291,8 @@ for (( a = 0; a < $#; a++ )); do
         dry_run=1
     elif [[ ${args[$a]} == "-d" ]]; then
         debug_flag=1
+    elif [[ ${args[$a]} == -c=* ]]; then
+        makepkg_config=${args[$a]#*=}
     elif [[ ${args[$a]} == "-h" ]]; then
         usage
     else
