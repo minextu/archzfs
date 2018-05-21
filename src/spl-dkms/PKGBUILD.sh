@@ -7,7 +7,7 @@ pkgdesc="Solaris Porting Layer kernel modules."
 pkgver=${spl_pkgver}
 pkgrel=${spl_pkgrel}
 makedepends=(${spl_makedepends})
-arch=("x86_64")
+arch=("any")
 url="http://zfsonlinux.org/"
 source=("${spl_src_target}"
         "60-spl-dkms-install.hook"

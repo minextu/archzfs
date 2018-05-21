@@ -14,7 +14,7 @@ pkgrel=${zfs_pkgrel}
 pkgdesc="Kernel module support files for the Zettabyte File System."
 depends=(${zfs_depends})
 makedepends=(${zfs_makedepends})
-arch=("x86_64")
+arch=("x86_64" "aarch64")
 url="http://zfsonlinux.org/"
 source=("${zfs_src_target}"
         "zfs-utils.bash-completion-r1"
@@ -38,7 +38,7 @@ build() {
     ./configure --prefix=/usr --sysconfdir=/etc --sbindir=/usr/bin --with-mounthelperdir=/usr/bin \\
                 --libdir=/usr/lib --datadir=/usr/share --includedir=/usr/include \\
                 --with-udevdir=/lib/udev --libexecdir=/usr/lib/zfs-${zol_version} \\
-                --with-config=user --enable-systemd
+                --with-config=user --enable-systemd --host=\${CHOST}
     make
 }
 

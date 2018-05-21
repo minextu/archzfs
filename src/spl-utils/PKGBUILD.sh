@@ -6,7 +6,7 @@ pkgname="${spl_utils_pkgname}"
 pkgver=${spl_pkgver}
 pkgrel=${spl_pkgrel}
 pkgdesc="Solaris Porting Layer kernel module support files."
-arch=("x86_64")
+arch=("x86_64" "aarch64")
 url="http://zfsonlinux.org/"
 source=("${spl_src_target}")
 sha256sums=("${spl_src_hash}")
@@ -20,7 +20,7 @@ ${spl_utils_replaces}
 build() {
     cd "${spl_workdir}"
     ./autogen.sh
-    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin --with-config=user
+    ./configure --prefix=/usr --libdir=/usr/lib --sbindir=/usr/bin --with-config=user --host=\${CHOST}
     make
 }
 
