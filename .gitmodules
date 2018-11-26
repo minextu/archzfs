@@ -43,3 +43,15 @@
 [submodule "packages/archiso/zfs-archiso-linux"]
 	path = packages/archiso/zfs-archiso-linux
 	url = git@github.com:archzfs-test-pkgbuilds/zfs-archiso-linux.git
+[submodule "packages/_utils/zfs-utils-rc"]
+	path = packages/_utils/zfs-utils-rc
+	url = git@github.com:archzfs-test-pkgbuilds/zfs-utils-rc.git
+[submodule "packages/linux/zfs-linux-rc"]
+	path = packages/linux/zfs-linux-rc
+	url = git@github.com:archzfs-test-pkgbuilds/zfs-linux-rc.git
+[submodule "packages/linux-lts/zfs-linux-lts-rc"]
+	path = packages/linux-lts/zfs-linux-lts-rc
+	url = git@github.com:archzfs-test-pkgbuilds/zfs-linux-lts-rc.git
+[submodule "packages/dkms/zfs-dkms-rc"]
+	path = packages/dkms/zfs-dkms-rc
+	url = git@github.com:archzfs-test-pkgbuilds/zfs-dkms-rc.git
