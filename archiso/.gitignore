@@ -1,3 +1,6 @@
 work/
 out/
+out-git/
 repo/
+pacman.conf
+packages.x86_64
